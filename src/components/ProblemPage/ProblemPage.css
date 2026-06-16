@@ -1,0 +1,573 @@
+/* ============================================================
+   PROBLEM PAGE — Google Labs × Bauhaus × Memphis Editorial
+   ============================================================ */
+
+/* ── Design Tokens ── */
+:root {
+  --pp-yellow:    #F5E642;
+  --pp-magenta:   #FF2D78;
+  --pp-periwinkle:#6B7FFF;
+  --pp-lime:      #A8FF3E;
+  --pp-coral:     #FF6B4A;
+  --pp-rose:      #FFB3C6;
+  --pp-ink:       #111111;
+  --pp-cream:     #FAFAF7;
+  --pp-white:     #FFFFFF;
+  --pp-off:       #F0F0ED;
+
+  --pp-font-heavy: 'Inter', sans-serif;
+  --pp-font-body:  'Inter', sans-serif;
+
+  --pp-ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --pp-ease-back:  cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* step slide split */
+  --pp-anim-split: 62%;
+}
+
+/* ============================================================
+   ROOT
+   ============================================================ */
+.pp-root {
+  background: var(--pp-cream);
+  color: var(--pp-ink);
+  font-family: var(--pp-font-body);
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  transition: background 0.6s var(--pp-ease-out), color 0.6s var(--pp-ease-out);
+}
+
+/* ============================================================
+   HERO — Swiss Editorial (dark DotGrid left / white right)
+   ============================================================ */
+.pp-hero {
+  position: relative;
+  height: 100vh;
+  min-height: 560px;
+  display: grid;
+  grid-template-columns: 45% 55%;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+  scroll-snap-align: start;
+}
+
+.pp-hero-dark {
+  position: relative;
+  grid-column: 1;
+  background: #0e0e0e;
+  overflow: hidden;
+}
+
+.pp-hero-light {
+  grid-column: 2;
+  background: var(--pp-cream);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(3rem, 6vw, 6rem) clamp(2rem, 4vw, 5rem);
+  position: relative;
+  z-index: 5;
+}
+
+.pp-hero-light-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2rem;
+  padding-bottom: 3rem;
+}
+
+.pp-hero-light-question {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pp-hero-question-label {
+  font-family: var(--pp-font-heavy);
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--pp-ink);
+  opacity: 0.35;
+  margin: 0;
+}
+
+.pp-hero-question {
+  font-family: var(--pp-font-heavy);
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--pp-ink);
+  margin: 0;
+  max-width: 36ch;
+}
+
+.pp-hero-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pp-hero-title {
+  font-family: var(--pp-font-heavy);
+  font-size: clamp(3.5rem, 7vw, 8rem);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--pp-ink);
+  margin: 0;
+  text-transform: uppercase;
+  word-break: break-word;
+}
+
+.pp-hero-light-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: flex-end;
+}
+
+.pp-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  background: transparent;
+  color: var(--pp-ink);
+  border: 1px solid var(--pp-ink);
+  transition: transform 0.18s var(--pp-ease-back), box-shadow 0.18s ease;
+  cursor: default;
+}
+.pp-hero-pill:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+/* ============================================================
+   APPROACH SECTION — untouched
+   ============================================================ */
+.pp-approach {
+  position: relative;
+  padding: clamp(6rem, 12vh, 12rem) 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  scroll-snap-align: start;
+}
+
+.pp-approach-grid {
+  display: grid;
+  grid-template-columns: 2fr 7fr;
+  gap: 2rem;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 4rem);
+}
+
+.pp-approach-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 0.5rem;
+}
+
+.pp-approach-heading-minimal {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pp-ink);
+  margin: 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  text-transform: none;
+}
+
+.pp-approach-bullet {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.pp-approach-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.pp-approach-body {
+  color: var(--pp-ink);
+  font-family: var(--font-body);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  font-weight: 400;
+  max-width: 95%;
+}
+.pp-approach-body p { margin: 0; }
+.pp-approach-body p + p { margin-top: 1.5rem; }
+.pp-approach-body strong { color: var(--pp-ink); font-weight: 500; }
+
+/* ============================================================
+   RESOLUTION SECTION
+   ============================================================ */
+.pp-resolution {
+  position: relative;
+}
+
+.pp-resolution-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.pp-resolution-label-row {
+  display: none; /* hidden — label is now inside each slide */
+}
+
+.pp-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  color: inherit;
+}
+
+/* ============================================================
+   STEP SLIDE — Full-screen Presentation Layout
+   Upper: dark animation zone
+   Lower: description → /number  title
+   ============================================================ */
+.pp-step {
+  position: relative;
+  height: 100vh;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  scroll-snap-align: start;
+  transition: opacity 0.6s var(--pp-ease-out), transform 0.6s var(--pp-ease-out);
+  opacity: 0.15;
+  transform: scale(0.96);
+  background: var(--pp-cream);
+}
+
+.pp-step.pp-active-slide {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.pp-step:last-child {
+  border-bottom: none;
+}
+
+/* ── Upper dark animation zone ── */
+.pp-step-anim-rect {
+  position: relative;
+  flex: 0 0 var(--pp-anim-split);
+  width: 100%;
+  background: #0a0a0a;
+  overflow: hidden;
+  /* default — dark field. Step-specific animations go inside. */
+}
+
+/* Hide if genuinely empty (no children whatsoever) */
+.pp-step-anim-rect:not(:has(*)):empty {
+  background: #0a0a0a;
+}
+
+/* ── Lower content zone (below the animation) ── */
+.pp-step-lower {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.75rem clamp(2rem, 5vw, 5rem) 2rem;
+  position: relative;
+  background: var(--pp-cream);
+}
+
+/* Description text — sits above the number/title row */
+.pp-step-body {
+  position: relative;
+  z-index: 2;
+  color: rgba(17,17,17,0.7);
+  line-height: 1.6;
+  font-size: clamp(1rem, 1.2vw, 1.25rem);
+  font-weight: 400;
+  max-width: 60ch;
+  margin-bottom: 1.5rem;
+}
+.pp-step-body p { margin: 0; }
+.pp-step-body p + p { margin-top: 0.6rem; }
+.pp-step-body strong { color: var(--pp-ink); font-weight: 600; }
+
+/* Inline math in body */
+.pp-step-body .katex { font-size: 0.95em; }
+.pp-step-body .katex-display { margin: 0.5rem 0; font-size: 0.88em; }
+
+/* ── Number + Title row (the big editorial line) ── */
+.pp-step-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(1rem, 2vw, 2rem);
+  line-height: 0.9;
+}
+
+.pp-step-num-col {
+  /* ghost number — large watermark behind the title row */
+  display: flex;
+  align-items: baseline;
+  flex-shrink: 0;
+}
+
+.pp-step-num-circle {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pp-ink);
+  user-select: none;
+  display: inline-flex;
+  gap: 0.75rem;
+  align-items: center;
+  text-transform: none;
+}
+
+.pp-step-num-circle::before {
+  content: '•';
+  font-size: 1.2em;
+  line-height: 1;
+  color: inherit;
+}
+
+/* Category label — lives inside the anim rect, top-left overlay */
+.pp-step-category {
+  position: absolute;
+  top: 1.5rem;
+  left: clamp(2rem, 5vw, 5rem);
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin: 0;
+  z-index: 10;
+}
+
+/* Title — sits beside the big number */
+.pp-step-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-width: 0;
+  flex: 1;
+}
+
+.pp-step-heading {
+  font-family: var(--pp-font-heavy);
+  font-size: clamp(2rem, 4.5vw, 5rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--pp-ink);
+  margin: 0;
+  word-break: break-word;
+}
+
+/* Code blocks inside steps */
+.pp-step pre {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace !important;
+  font-size: 0.7rem !important;
+  line-height: 1.65 !important;
+  color: #d4d4d4 !important;
+  background: #141414 !important;
+  border: none !important;
+  border-left: 2px solid var(--step-accent, #fff) !important;
+  padding: 1.1rem 1.5rem !important;
+  border-radius: 0 4px 4px 0 !important;
+  overflow-x: auto !important;
+  margin: 0 !important;
+  white-space: pre !important;
+  max-height: 100%;
+}
+
+/* ── Data tables inside steps ── */
+.pp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  color: rgba(255,255,255,0.8);
+}
+.pp-table thead th {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.pp-table tbody td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+}
+.pp-table tbody tr:last-child td { border-bottom: none; }
+.pp-table tfoot td {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  font-weight: 700;
+  color: #fff;
+}
+.pp-table tbody td:first-child {
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ── KaTeX inside dark anim rect ── */
+.pp-step-anim-rect .katex-display {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  color: #fff;
+}
+.pp-step-anim-rect .katex {
+  font-size: 1em;
+  color: #fff;
+}
+
+/* ── DFS node row ── */
+.pp-dfs-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+.pp-dfs-node-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pp-dfs-node {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--pp-font-heavy);
+  font-size: 0.9rem;
+  font-weight: 800;
+  transition: transform 0.18s var(--pp-ease-back);
+  cursor: default;
+}
+.pp-dfs-node:hover { transform: scale(1.15); }
+.pp-dfs-arrow {
+  font-size: 0.65rem;
+  opacity: 0.3;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ── Two-col grid inside step body ── */
+.pp-step-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ============================================================
+   PRESENTATION MODE NAVIGATION (HUD)
+   ============================================================ */
+
+.pp-hud-counter {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  font-family: var(--pp-font-heavy);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--pp-ink);
+  z-index: 100;
+  opacity: 0.45;
+}
+
+/* ============================================================
+   STAGGERED ENTRY ANIMATIONS
+   ============================================================ */
+.pp-step.pp-active-slide .pp-step-anim-rect    { animation: slideUpFade 1s var(--pp-ease-out) forwards; animation-delay: 0s;    opacity: 0; }
+.pp-step.pp-active-slide .pp-step-category     { animation: slideUpFade 0.7s var(--pp-ease-out) forwards; animation-delay: 0.2s; opacity: 0; }
+.pp-step.pp-active-slide .pp-step-body         { animation: slideUpFade 0.8s var(--pp-ease-out) forwards; animation-delay: 0.25s; opacity: 0; }
+.pp-step.pp-active-slide .pp-step-num-circle   { animation: slideUpFade 0.9s var(--pp-ease-out) forwards; animation-delay: 0.35s; opacity: 0; }
+.pp-step.pp-active-slide .pp-step-heading      { animation: slideUpFade 0.9s var(--pp-ease-out) forwards; animation-delay: 0.42s; opacity: 0; }
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pp-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes pp-float-simple {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes pp-fade-up {
+  from { opacity: 0; transform: translateY(10px) translateX(-50%); }
+  to   { opacity: 1; transform: translateY(0) translateX(-50%); }
+}
+@keyframes pp-scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── KaTeX overrides inside pp ── */
+.pp-root .katex-display {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+.pp-root .katex {
+  font-size: 1.05em;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  :root { --pp-anim-split: 50%; }
+
+  .pp-hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: 50% 50%;
+  }
+  .pp-hero-dark { grid-column: 1; grid-row: 1; }
+  .pp-hero-light { grid-column: 1; grid-row: 2; }
+
+  .pp-approach-grid {
+    grid-template-columns: 1fr;
+  }
+  .pp-approach-left {
+    border-bottom: 1px solid rgba(17,17,17,0.1);
+    padding-bottom: 2rem;
+  }
+
+  .pp-step-heading {
+    font-size: clamp(2rem, 8vw, 4rem);
+  }
+
+  .pp-step-grid {
+    grid-template-columns: 1fr;
+  }
+}
