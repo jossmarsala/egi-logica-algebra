@@ -1023,9 +1023,6 @@ function VizF() {
       (b === n && s.conflictNodes.includes(a))
     )
   }
-  const isLockedEdge = (a: number, b: number) => {
-    return s.locked[a] !== undefined && s.locked[b] !== undefined
-  }
 
   return (
     <svg
