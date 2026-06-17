@@ -16,7 +16,7 @@ const problems = [
     title: 'Estadística y Probabilidad',
     description: 'Distribuciones de frecuencia, histogramas, boxplots y medidas de tendencia central.',
     path: '/problema/2',
-    accent: 'var(--accent-blue)',
+    accent: 'var(--accent-pink)',
     tag: 'Estadística',
   },
   {
