@@ -635,39 +635,131 @@ const resolution = (
         PASO 12 — INTERPRETACIÓN Y CONCLUSIÓN FINAL
         ════════════════════════════════════════════════════════ */}
     <div className="pp-step">
-      <div className="pp-step-anim-rect" style={{ background: '#050810', position: 'relative', overflow: 'hidden' }}>
+      <div className="pp-step-anim-rect" style={{ background: '#040710', position: 'relative', overflow: 'hidden' }}>
         <p className="pp-step-category">Conclusión Final · Trade-off de Ingeniería</p>
-        <svg viewBox="0 0 800 380" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} preserveAspectRatio="xMidYMid meet">
-          {/* Decision matrix */}
-          <text x={400} y={35} fill="rgba(255,255,255,0.2)" fontSize="8" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.15em" textAnchor="middle">TRADE-OFF</text>
-          {/* A column */}
-          <rect x={40} y={50} width={320} height={260} fill="rgba(30,58,95,0.18)" rx={8} stroke={`${A_COLOR}55`} strokeWidth="1.5" />
-          <text x={200} y={78} fill={A_COLOR} fontSize="14" fontFamily="Inter,sans-serif" fontWeight="900" textAnchor="middle">ALGORITMO A</text>
-          {[
-            '✓  Distribución perfectamente simétrica',
-            '✓  Desviación estándar: 1,96 s',
-            '✓  Cero picos de retraso (coef. asim. = 0)',
-            '✓  Previsibilidad total para SLAs rígidos',
-            '✗  Media más lenta: 7,50 s',
-            '✗  Solo el 6% termina en menos de 5 s',
-          ].map((t, i) => (
-            <text key={i} x={60} y={108 + i * 30} fill={t.startsWith('✓') ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.3)'} fontSize="10" fontFamily="Inter,sans-serif">{t}</text>
+        <svg viewBox="0 0 800 390" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="gradA" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={A_COLOR} stopOpacity="0.18" />
+              <stop offset="100%" stopColor={A_COLOR} stopOpacity="0.04" />
+            </linearGradient>
+            <linearGradient id="gradB" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={B_COLOR} stopOpacity="0.22" />
+              <stop offset="100%" stopColor={B_COLOR} stopOpacity="0.04" />
+            </linearGradient>
+            <linearGradient id="gradVerdict" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor={A_COLOR} stopOpacity="0.15" />
+              <stop offset="50%" stopColor="#ffffff" stopOpacity="0.05" />
+              <stop offset="100%" stopColor={B_COLOR} stopOpacity="0.15" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
+
+          {/* ── Header label ── */}
+          <text x={400} y={26} fill="rgba(255,255,255,0.18)" fontSize="8" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.2em" textAnchor="middle">ANÁLISIS TRADE-OFF · DECISIÓN FINAL</text>
+
+          {/* ══ PANEL A ══ */}
+          <rect x={28} y={38} width={335} height={248} fill="url(#gradA)" rx={10} stroke={A_COLOR} strokeWidth="1" strokeOpacity="0.35" />
+          {/* top accent line */}
+          <rect x={28} y={38} width={335} height={4} fill={A_COLOR} rx={2} opacity={0.7} />
+
+          {/* Algorithm A header */}
+          <text x={196} y={72} fill={A_COLOR} fontSize="13" fontFamily="Inter,sans-serif" fontWeight="900" textAnchor="middle" letterSpacing="0.05em">ALGORITMO A</text>
+          <text x={196} y={86} fill="rgba(255,255,255,0.3)" fontSize="8.5" fontFamily="Inter,sans-serif" textAnchor="middle" letterSpacing="0.1em">ESTABLE · PREDECIBLE</text>
+
+          {/* Score dots A — 4 pros, 2 cons → score 4/6 */}
+          {[0,1,2,3,4,5].map(i => (
+            <circle key={i} cx={162 + i * 14} cy={98} r={4}
+              fill={i < 4 ? A_COLOR : 'rgba(255,255,255,0.1)'}
+              opacity={i < 4 ? 0.85 : 1} />
           ))}
-          {/* B column */}
-          <rect x={440} y={50} width={320} height={260} fill="rgba(231,114,144,0.12)" rx={8} stroke={`${ACCENT_HEX}55`} strokeWidth="1.5" />
-          <text x={600} y={78} fill={ACCENT_HEX} fontSize="14" fontFamily="Inter,sans-serif" fontWeight="900" textAnchor="middle">ALGORITMO B</text>
+
+          {/* Pros */}
           {[
-            '✓  Media más veloz: 5,30 s (−29%)',
-            '✓  Mediana: 4,50 s — muy rápido al 50%',
-            '✓  88% de ejecuciones rápidas son B',
-            '✓  P-valor 0,00022 — ventaja verificada',
-            '✗  Asimetría 1,31 — cola de demoras',
-            '✗  Desviación mayor: 2,51 s (errático)',
+            'Distribución perfectamente simétrica',
+            'Desviación estándar estable: 1,96 s',
+            'Coef. asimetría = 0,00 · sin picos',
+            'Previsibilidad para SLAs críticos',
           ].map((t, i) => (
-            <text key={i} x={460} y={108 + i * 30} fill={t.startsWith('✓') ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.3)'} fontSize="10" fontFamily="Inter,sans-serif">{t}</text>
+            <g key={i}>
+              <circle cx={50} cy={122 + i * 28} r={3.5} fill={A_COLOR} opacity={0.8} />
+              <text x={62} y={126 + i * 28} fill="rgba(255,255,255,0.65)" fontSize="9.5" fontFamily="Inter,sans-serif">{t}</text>
+            </g>
           ))}
-          {/* vs line */}
-          <text x={400} y={195} fill="rgba(255,255,255,0.12)" fontSize="36" fontFamily="Inter,sans-serif" fontWeight="900" textAnchor="middle">VS</text>
+
+          {/* separator */}
+          <line x1={46} y1={238} x2={350} y2={238} stroke={`${A_COLOR}30`} strokeWidth="1" />
+
+          {/* Cons */}
+          {[
+            'Media más lenta: 7,50 s',
+            'Solo el 6% finaliza en < 5 s',
+          ].map((t, i) => (
+            <g key={i}>
+              <rect x={46} cy={250 + i * 26} y={246 + i * 26} width={7} height={7} fill="rgba(255,255,255,0.08)" rx={1.5} />
+              <text x={62} y={256 + i * 26} fill="rgba(255,255,255,0.28)" fontSize="9" fontFamily="Inter,sans-serif">{t}</text>
+            </g>
+          ))}
+
+          {/* ══ PANEL B ══ */}
+          <rect x={437} y={38} width={335} height={248} fill="url(#gradB)" rx={10} stroke={B_COLOR} strokeWidth="1" strokeOpacity="0.4" />
+          <rect x={437} y={38} width={335} height={4} fill={B_COLOR} rx={2} opacity={0.75} />
+
+          <text x={605} y={72} fill={B_COLOR} fontSize="13" fontFamily="Inter,sans-serif" fontWeight="900" textAnchor="middle" letterSpacing="0.05em">ALGORITMO B</text>
+          <text x={605} y={86} fill="rgba(255,255,255,0.3)" fontSize="8.5" fontFamily="Inter,sans-serif" textAnchor="middle" letterSpacing="0.1em">VELOZ · EFICIENTE</text>
+
+          {/* Score dots B — 4 pros → 4/6 */}
+          {[0,1,2,3,4,5].map(i => (
+            <circle key={i} cx={571 + i * 14} cy={98} r={4}
+              fill={i < 4 ? B_COLOR : 'rgba(255,255,255,0.1)'}
+              opacity={i < 4 ? 0.9 : 1} />
+          ))}
+
+          {/* Pros */}
+          {[
+            'Media 29% más veloz: 5,30 s',
+            'Mediana 4,50 s — 50% termina rápido',
+            '88% ejecuciones cortas son B',
+            'P-valor 0,00022 · ventaja estadística',
+          ].map((t, i) => (
+            <g key={i}>
+              <circle cx={459} cy={122 + i * 28} r={3.5} fill={B_COLOR} opacity={0.85} />
+              <text x={471} y={126 + i * 28} fill="rgba(255,255,255,0.65)" fontSize="9.5" fontFamily="Inter,sans-serif">{t}</text>
+            </g>
+          ))}
+
+          <line x1={455} y1={238} x2={759} y2={238} stroke={`${B_COLOR}30`} strokeWidth="1" />
+
+          {/* Cons */}
+          {[
+            'Asimetría 1,31 — cola de demoras',
+            'Desviación mayor: 2,51 s (errático)',
+          ].map((t, i) => (
+            <g key={i}>
+              <rect x={455} y={246 + i * 26} width={7} height={7} fill="rgba(255,255,255,0.08)" rx={1.5} />
+              <text x={471} y={256 + i * 26} fill="rgba(255,255,255,0.28)" fontSize="9" fontFamily="Inter,sans-serif">{t}</text>
+            </g>
+          ))}
+
+          {/* ══ VS divider ══ */}
+          <line x1={400} y1={48} x2={400} y2={282} stroke="rgba(255,255,255,0.07)" strokeWidth="1" strokeDasharray="4,4" />
+          <circle cx={400} cy={163} r={18} fill="#0a0f1c" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
+          <text x={400} y={169} fill="rgba(255,255,255,0.3)" fontSize="11" fontFamily="Inter,sans-serif" fontWeight="900" textAnchor="middle">VS</text>
+
+          {/* ══ VERDICT BANNER ══ */}
+          <rect x={28} y={298} width={744} height={72} fill="url(#gradVerdict)" rx={10} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          <rect x={28} y={298} width={744} height={2} fill="rgba(255,255,255,0.12)" rx={1} />
+
+          <text x={400} y={322} fill="rgba(255,255,255,0.22)" fontSize="7.5" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.2em" textAnchor="middle">VEREDICTO</text>
+          <text x={400} y={344} fill="rgba(255,255,255,0.75)" fontSize="11" fontFamily="Inter,sans-serif" fontWeight="700" textAnchor="middle">
+            B → velocidad máxima · A → estabilidad crítica
+          </text>
+          <text x={400} y={360} fill="rgba(255,255,255,0.35)" fontSize="8.5" fontFamily="Inter,sans-serif" textAnchor="middle">
+            Elección según contexto: cloud / UX → B  ·  tiempo real / SLA → A
+          </text>
         </svg>
       </div>
       <div className="pp-step-lower">
