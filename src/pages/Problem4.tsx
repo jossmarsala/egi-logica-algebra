@@ -10,6 +10,7 @@ const KEYFRAMES = `
   @keyframes drawLine       { from { stroke-dashoffset:1200; } to { stroke-dashoffset:0; } }
   @keyframes popIn          { from { transform:scale(0.6); opacity:0; } to { transform:scale(1); opacity:1; } }
   @keyframes pulseGlow      { 0%,100%{opacity:0.4} 50%{opacity:1} }
+  @keyframes softBreathe    { 0%,100%{opacity:0.15} 50%{opacity:0.4} }
 
   .fsu-1 { opacity:0; animation:fadeSlideUp    0.7s ease forwards 0.15s; }
   .fsu-2 { opacity:0; animation:fadeSlideUp    0.7s ease forwards 0.4s;  }
@@ -25,6 +26,7 @@ const KEYFRAMES = `
   .dl-2  { stroke-dasharray:1200; stroke-dashoffset:1200; animation:drawLine 1.2s ease forwards 0.6s; }
   .dl-3  { stroke-dasharray:1200; stroke-dashoffset:1200; animation:drawLine 1.2s ease forwards 0.9s; }
   .pg    { animation:pulseGlow 2.4s ease-in-out infinite; }
+  .breathe-glow { animation:softBreathe 3s ease-in-out infinite; }
 `
 
 // ─── Step A — k-promising vectors as nodes ────────────────────────────────────
@@ -99,19 +101,34 @@ function VizA() {
         </g>
       ))}
 
-      {/* Legend */}
-      {[
-        { color: ACCENT_HEX, label: 'k=0 · raíz (vector vacío)', y: 50 },
-        { color: '#69b6dd', label: 'k=1 · 1 reina colocada', y: 76 },
-        { color: '#e0a0ff', label: 'k=2 · 2 reinas colocadas', y: 102 },
-        { color: '#ff9f67', label: 'k=3 · 3 reinas colocadas', y: 128 },
-      ].map(l => (
-        <g key={l.label} className="fsu-4">
-          <rect x={670} y={l.y - 6} width={8} height={8} fill={l.color} />
-          <text x={684} y={l.y + 3} fill={l.color} fontSize="9.5"
-            fontFamily="Inter,sans-serif">{l.label}</text>
-        </g>
-      ))}
+      {/* Side Panel (Legend + Set Formula) */}
+      <g className="fsu-4">
+        {/* Section Title */}
+        <text x={737.5} y={52} fill="rgba(255,255,255,0.35)" fontSize="8"
+          fontWeight="800" textAnchor="middle" fontFamily="Inter,sans-serif" letterSpacing="0.1em">
+          CONJUNTO DE VÉRTICES V
+        </text>
+
+        {/* Formula Text */}
+        <text x={737.5} y={92} fill={ACCENT_HEX} fontSize="13.5" fontWeight="700" textAnchor="middle"
+          fontFamily="'JetBrains Mono','Fira Code',monospace" letterSpacing="-0.02em">
+          V = {"{(c₁, c₂, …, cₖ) | 0 ≤ k ≤ 8}"}
+        </text>
+
+        {/* Legend Items */}
+        {[
+          { color: ACCENT_HEX, label: 'k=0 · raíz (vacío)', y: 194 },
+          { color: '#69b6dd', label: 'k=1 · 1 reina', y: 224 },
+          { color: '#e0a0ff', label: 'k=2 · 2 reinas', y: 254 },
+          { color: '#ff9f67', label: 'k=3 · 3 reinas', y: 284 },
+        ].map(l => (
+          <g key={l.label}>
+            <rect x={672} y={l.y - 6} width={8} height={8} fill={l.color} rx="1.5" />
+            <text x={686} y={l.y + 2} fill={l.color} fontSize="9"
+              fontFamily="Inter,sans-serif">{l.label}</text>
+          </g>
+        ))}
+      </g>
 
       <text x={420} y={392} fill="#444" fontSize="9.5" textAnchor="middle"
         fontFamily="Inter,sans-serif" letterSpacing="0.08em">
