@@ -138,242 +138,144 @@ function VizA() {
   )
 }
 
-// ─── Step B — La arista es tu jugada · Por qué es un árbol y no una telaraña ──
+// ─── Step B — Aristas · Estructura de Árbol ───────────────────────────────────
 function VizB() {
-  // Mini chessboard (4×4 simplified) showing column-by-column fill
-  const SZ = 32
-  const boardOX = 28
-  const boardOY = 50
-  // Placed queens per step: col index (0-based) for each column filled
-  const steps = [
-    [],           // step 0: empty
-    [1],          // step 1: col1 → row 2
-    [1, 3],       // step 2: col2 → row 4
-    [1, 3, 0],    // step 3: col3 → row 1
-  ]
-  const activeStep = 2 // which board to highlight as "current"
+  const SZ = 36         // cell size
+  const COLS = 4        // board columns/rows (simplified 4×4)
+  const boardW = COLS * SZ
 
-  // Arrow positions between boards (horizontal)
-  const boardSpacing = 4 * SZ + 28 // board width + gap
-  const boards = steps.map((queens, si) => ({
-    queens,
-    ox: boardOX + si * boardSpacing,
-    oy: boardOY,
-    isActive: si === activeStep,
-  }))
-
-  // Right-side tree illustrating unique history (no cycles)
-  // Nodes: show that (1,3) can only be reached ONE way
-  const treeNodes = [
-    { id: 'root', x: 665, y: 50,  label: '()',      col: -1 },
-    { id: 'n1',   x: 605, y: 130, label: '(1)',     col: 0 },
-    { id: 'n2',   x: 725, y: 130, label: '(2)',     col: 1 },
-    { id: 'n13',  x: 565, y: 215, label: '(1,3)',   col: 0 },
-    { id: 'n14',  x: 645, y: 215, label: '(1,4)',   col: 1 },
-    { id: 'n23',  x: 720, y: 215, label: '(2,3)',   col: 2 },
-    { id: 'n24',  x: 795, y: 215, label: '(2,4)',   col: 3 },
-    { id: 'n131', x: 545, y: 300, label: '(1,3,…)', col: 0 },
+  // Each board state: which row (0-based) is the queen in each column
+  const stages: number[][] = [
+    [],          // k=0 empty
+    [2],         // k=1
+    [2, 0],      // k=2
+    [2, 0, 3],   // k=3
   ]
-  const treeEdges = [
-    { p: 'root', c: 'n1' }, { p: 'root', c: 'n2' },
-    { p: 'n1', c: 'n13' }, { p: 'n1', c: 'n14' },
-    { p: 'n2', c: 'n23' }, { p: 'n2', c: 'n24' },
-    { p: 'n13', c: 'n131' },
-  ]
-  const tpos: Record<string, { x: number; y: number }> =
-    Object.fromEntries(treeNodes.map(n => [n.id, { x: n.x, y: n.y }]))
 
+  // Horizontal layout: boards evenly spaced in the left 490px
+  const totalLeft = 490
+  const startX = 28
+  const spacing = (totalLeft - startX - boardW) / 3   // gap between board left edges
+  const boardY = 80
+
+  // Right-side tree (x from 530 to 820)
+  const R = 13  // node radius
+  const tNodes = [
+    { id: 'r',   x: 672, y: 55,  label: '()',    hi: true  },
+    { id: 'a',   x: 590, y: 140, label: '(2)',   hi: false },
+    { id: 'b',   x: 755, y: 140, label: '(5)',   hi: false },
+    { id: 'c',   x: 548, y: 225, label: '(2,5)', hi: false },
+    { id: 'd',   x: 632, y: 225, label: '(2,7)', hi: false },
+    { id: 'e',   x: 716, y: 225, label: '(5,1)', hi: false },
+    { id: 'f',   x: 800, y: 225, label: '(5,3)', hi: false },
+    { id: 'g',   x: 548, y: 310, label: '…',     hi: false },
+    { id: 'h',   x: 632, y: 310, label: '…',     hi: false },
+  ]
+  const tEdges = [
+    ['r','a'], ['r','b'],
+    ['a','c'], ['a','d'],
+    ['b','e'], ['b','f'],
+    ['c','g'], ['d','h'],
+  ]
+  const tPos: Record<string, {x:number;y:number}> = Object.fromEntries(
+    tNodes.map(n => [n.id, {x: n.x, y: n.y}])
+  )
 
   return (
     <svg viewBox="0 0 840 400" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} preserveAspectRatio="xMidYMid meet">
       <defs>
         <style>{KEYFRAMES}</style>
-        <marker id="arrBY" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L0,6 L7,3 z" fill={ACCENT_HEX} />
+        <marker id="arrBY" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 z" fill={ACCENT_HEX} />
         </marker>
-        <marker id="arrBG" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L0,6 L7,3 z" fill="#444" />
-        </marker>
-        <marker id="arrBR" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L0,6 L7,3 z" fill="#ff4444" />
+        <marker id="arrBD" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 z" fill="#333" />
         </marker>
       </defs>
 
-      {/* ── LEFT SIDE: boards + edge-as-move metaphor ── */}
-
-      {/* Section header */}
-      <g className="fsu-1">
-        <text x={220} y={30} fill="rgba(255,255,255,0.3)" fontSize="8" fontWeight="800"
-          textAnchor="middle" fontFamily="Inter,sans-serif" letterSpacing="0.12em">
-          ARISTA = PONER LA SIGUIENTE REINA · PASAR DE TURNO
-        </text>
-      </g>
-
-      {/* Boards */}
-      {boards.map((b, si) => (
-        <g key={si} className={`pop-${si + 1}`}>
-          {/* Board grid */}
-          {Array.from({ length: 4 }, (_, row) =>
-            Array.from({ length: 4 }, (_, col) => {
-              const isQueen = b.queens[col] === row
-              const isCurrent = isQueen && col === b.queens.length - 1
-              const light = (row + col) % 2 === 0
-              return (
-                <rect key={`${row}-${col}`}
-                  x={b.ox + col * SZ} y={b.oy + row * SZ}
-                  width={SZ - 1} height={SZ - 1}
-                  fill={isCurrent ? `${ACCENT_HEX}22` : isQueen ? 'rgba(105,182,221,0.12)' : light ? '#181818' : '#111'}
-                  stroke={isCurrent ? ACCENT_HEX : isQueen ? '#69b6dd' : '#1f1f1f'}
-                  strokeWidth={isCurrent ? '1.5' : '0.5'}
-                />
-              )
-            })
-          )}
-          {/* Queens */}
-          {b.queens.map((row, col) => (
-            <text key={col}
-              x={b.ox + col * SZ + SZ / 2} y={b.oy + row * SZ + SZ - 5}
-              fill={col === b.queens.length - 1 ? ACCENT_HEX : '#69b6dd'}
-              fontSize="16" textAnchor="middle" fontFamily="Inter,sans-serif">
-              ♛
-            </text>
-          ))}
-          {/* Column highlight band under board */}
-          {b.queens.length > 0 && (
-            <rect
-              x={b.ox + (b.queens.length - 1) * SZ} y={b.oy + 4 * SZ + 2}
-              width={SZ - 1} height={3} rx="1"
-              fill={ACCENT_HEX} opacity="0.7"
-            />
-          )}
-          {/* Label below board */}
-          <text x={b.ox + 2 * SZ} y={b.oy + 4 * SZ + 18}
-            fill={b.isActive ? ACCENT_HEX : '#555'} fontSize="9" textAnchor="middle"
-            fontFamily="'JetBrains Mono','Fira Code',monospace" fontWeight={b.isActive ? '700' : '400'}>
-            {si === 0 ? '()' : `(${b.queens.join(',')})`}
-          </text>
-          <text x={b.ox + 2 * SZ} y={b.oy + 4 * SZ + 30}
-            fill="#444" fontSize="7.5" textAnchor="middle" fontFamily="Inter,sans-serif">
-            k={b.queens.length}
-          </text>
-        </g>
-      ))}
-
-      {/* Arrows between boards (the "move") */}
-      {boards.slice(0, -1).map((b, si) => {
-        const isNext = si === activeStep - 1
-        const ax = b.ox + 4 * SZ + 4
-        const ay = b.oy + 2 * SZ
-        const bx = b.ox + boardSpacing - 4
+      {/* ── BOARDS ── */}
+      {stages.map((queens, si) => {
+        const ox = startX + si * (boardW + spacing)
         return (
-          <g key={si} className={`dl-${si + 1}`}>
-            <line x1={ax} y1={ay} x2={bx} y2={ay}
-              stroke={isNext ? ACCENT_HEX : '#333'} strokeWidth={isNext ? '2' : '1'}
-              markerEnd={isNext ? 'url(#arrBY)' : 'url(#arrBG)'} />
-            {isNext && (
-              <>
-                <rect x={(ax + bx) / 2 - 24} y={ay - 14} width={48} height={14} rx="4"
-                  fill={ACCENT_HEX} />
-                <text x={(ax + bx) / 2} y={ay - 3} fill="#000" fontSize="8" fontWeight="800"
-                  textAnchor="middle" fontFamily="Inter,sans-serif">TU TURNO</text>
-              </>
+          <g key={si} className={`pop-${si + 1}`}>
+            {/* Grid cells */}
+            {Array.from({ length: COLS }, (_, row) =>
+              Array.from({ length: COLS }, (_, col) => {
+                const hasQueen = queens[col] === row
+                const isNew    = hasQueen && col === queens.length - 1
+                return (
+                  <rect key={`${row}-${col}`}
+                    x={ox + col * SZ} y={boardY + row * SZ}
+                    width={SZ - 1} height={SZ - 1}
+                    fill={isNew ? `${ACCENT_HEX}18` : hasQueen ? 'rgba(105,182,221,0.1)' : (row + col) % 2 === 0 ? '#161616' : '#0f0f0f'}
+                    stroke={isNew ? ACCENT_HEX : hasQueen ? '#69b6dd44' : '#1a1a1a'}
+                    strokeWidth={isNew ? '1.5' : '0.5'}
+                  />
+                )
+              })
             )}
+            {/* Queens */}
+            {queens.map((row, col) => (
+              <text key={col}
+                x={ox + col * SZ + SZ / 2}
+                y={boardY + row * SZ + SZ - 6}
+                fill={col === queens.length - 1 ? ACCENT_HEX : '#69b6dd'}
+                fontSize="18" textAnchor="middle" fontFamily="Inter,sans-serif">
+                ♛
+              </text>
+            ))}
+            {/* Tuple label */}
+            <text x={ox + boardW / 2} y={boardY + COLS * SZ + 16}
+              fill={si === 2 ? ACCENT_HEX : '#3a3a3a'} fontSize="9.5" textAnchor="middle"
+              fontFamily="'JetBrains Mono','Fira Code',monospace">
+              {si === 0 ? '( )' : `(${queens.join(', ')})`}
+            </text>
           </g>
         )
       })}
 
-      {/* Label for col being filled */}
-      <g className="fsu-2">
-        <text x={boardOX + activeStep * boardSpacing + 2 * SZ} y={boardOY - 10}
-          fill={ACCENT_HEX} fontSize="8.5" textAnchor="middle" fontWeight="700"
-          fontFamily="Inter,sans-serif">← col {activeStep + 1}</text>
-      </g>
+      {/* ── ARROWS BETWEEN BOARDS ── */}
+      {stages.slice(0, -1).map((_, si) => {
+        const ax = startX + si * (boardW + spacing) + boardW + 3
+        const bx = startX + (si + 1) * (boardW + spacing) - 3
+        const ay = boardY + (COLS * SZ) / 2
+        const isActive = si === 1   // highlight second arrow
+        return (
+          <line key={si} className={`dl-${si + 1}`}
+            x1={ax} y1={ay} x2={bx} y2={ay}
+            stroke={isActive ? ACCENT_HEX : '#252525'}
+            strokeWidth={isActive ? '1.8' : '1'}
+            markerEnd={isActive ? 'url(#arrBY)' : 'url(#arrBD)'} />
+        )
+      })}
 
-      {/* Explanatory callout (bottom-left) */}
-      <g className="fsu-3">
-        <rect x={boardOX} y={boardOY + 4 * SZ + 42} width={4 * boardSpacing - 12} height={30} rx="5"
-          fill="rgba(245,230,66,0.04)" stroke="rgba(245,230,66,0.12)" strokeWidth="1" />
-        <text x={boardOX + (4 * boardSpacing - 12) / 2} y={boardOY + 4 * SZ + 60}
-          fill="#888" fontSize="9" textAnchor="middle" fontFamily="Inter,sans-serif">
-          La arista es pasar de turno: el tablero antes → el tablero después de colocar una reina segura en la siguiente columna
-        </text>
-      </g>
-
-      {/* ── RIGHT SIDE: tree + no-cycle explanation ── */}
-
-      {/* Panel bg */}
-      <g className="fsu-4">
-        <rect x={538} y={20} width={290} height={355} rx="8"
-          fill="rgba(255,255,255,0.015)" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-
-        {/* Title */}
-        <text x={683} y={40} fill="rgba(255,255,255,0.3)" fontSize="8" fontWeight="800"
-          textAnchor="middle" fontFamily="Inter,sans-serif" letterSpacing="0.1em">
-          POR QUÉ ES UN ÁRBOL Y NO UNA TELARAÑA
-        </text>
-
-        {/* Tree edges */}
-        {treeEdges.map((e, i) => {
-          const p = tpos[e.p], c = tpos[e.c]
-          return (
-            <line key={i}
-              x1={p.x} y1={p.y + 13} x2={c.x} y2={c.y - 13}
-              stroke="#2a2a2a" strokeWidth="1" markerEnd="url(#arrBG)" />
-          )
-        })}
-
-        {/* Tree nodes */}
-        {treeNodes.map(n => (
-          <g key={n.id} className="pop-2">
-            <circle cx={n.x} cy={n.y} r={n.id === 'n131' ? 18 : 14}
-              fill="#0d0d0d"
-              stroke={n.id === 'n13' || n.id === 'n131' ? '#e0a0ff'
-                : n.id === 'root' ? ACCENT_HEX
-                : '#333'}
-              strokeWidth={n.id === 'n13' || n.id === 'n131' ? '2' : '1'} />
-            <text x={n.x} y={n.y + 4} fill={n.id === 'n13' || n.id === 'n131' ? '#e0a0ff'
-                : n.id === 'root' ? ACCENT_HEX : '#555'}
-              fontSize={n.id === 'n131' ? '7' : '8'} fontWeight="700" textAnchor="middle"
-              fontFamily="'JetBrains Mono','Fira Code',monospace">
-              {n.label}
-            </text>
-          </g>
-        ))}
-
-        {/* Column labels for tree depth */}
-        {[{ label: 'col 1', y: 130, x: 557 }, { label: 'col 2', y: 215, x: 547 }, { label: 'col 3', y: 300, x: 530 }].map(l => (
-          <text key={l.label} x={l.x} y={l.y + 4} fill="#2e2e2e" fontSize="7.5"
-            textAnchor="middle" fontFamily="Inter,sans-serif">{l.label}</text>
-        ))}
-
-        {/* NO-CYCLE callout: crossed-out hypothetical cycle */}
-        <g className="fsu-4">
-          {/* Fake would-be cross-edge (red dashed, crossed out) */}
-          <line x1={720} y1={215} x2={605} y2={215}
-            stroke="#ff444433" strokeWidth="1.5" strokeDasharray="4 3" />
-          <text x={663} y={210} fill="#ff4444" fontSize="8" textAnchor="middle"
-            fontFamily="Inter,sans-serif" fontWeight="800">✗</text>
-          <text x={663} y={234} fill="#ff444488" fontSize="7.5" textAnchor="middle"
-            fontFamily="Inter,sans-serif">cruce imposible</text>
+      {/* ── TREE (right) ── */}
+      {/* Edges */}
+      {tEdges.map(([pid, cid], i) => {
+        const p = tPos[pid], c = tPos[cid]
+        return (
+          <line key={i} className="dl-2"
+            x1={p.x} y1={p.y + R} x2={c.x} y2={c.y - R}
+            stroke="#1e1e1e" strokeWidth="1" markerEnd="url(#arrBD)" />
+        )
+      })}
+      {/* Nodes */}
+      {tNodes.map(n => (
+        <g key={n.id} className="pop-3">
+          <circle cx={n.x} cy={n.y} r={R}
+            fill="#0c0c0c"
+            stroke={n.hi ? ACCENT_HEX : '#252525'}
+            strokeWidth={n.hi ? '1.5' : '1'} />
+          <text x={n.x} y={n.y + 3.5} fill={n.hi ? ACCENT_HEX : '#383838'}
+            fontSize="7" fontWeight="600" textAnchor="middle"
+            fontFamily="'JetBrains Mono','Fira Code',monospace">
+            {n.label}
+          </text>
         </g>
+      ))}
 
-        {/* Key insight callout */}
-        <rect x={548} y={320} width={270} height={44} rx="6"
-          fill="rgba(224,160,255,0.05)" stroke="rgba(224,160,255,0.15)" strokeWidth="1" />
-        <text x={683} y={337} fill="#e0a0ff" fontSize="8.5" textAnchor="middle"
-          fontWeight="700" fontFamily="Inter,sans-serif">
-          El orden es único: col 1 → 2 → … → 8
-        </text>
-        <text x={683} y={353} fill="#666" fontSize="8" textAnchor="middle"
-          fontFamily="Inter,sans-serif">
-          Una sola historia posible → sin ciclos → anatomía de árbol
-        </text>
-      </g>
-
-      <text x={420} y={393} fill="#333" fontSize="9" textAnchor="middle"
-        fontFamily="Inter,sans-serif" letterSpacing="0.08em">
-        ARISTA = NUEVA REINA EN LA SIGUIENTE COLUMNA · ORDEN ESTRICTO → SIN CICLOS
-      </text>
+      {/* Divider line between left and right */}
+      <line x1={518} y1={30} x2={518} y2={370} stroke="#1a1a1a" strokeWidth="1" />
     </svg>
   )
 }
