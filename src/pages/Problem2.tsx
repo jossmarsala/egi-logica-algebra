@@ -183,7 +183,7 @@ function ContingencyViz() {
   return (
     <svg viewBox="0 0 700 380" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} preserveAspectRatio="xMidYMid meet">
       {/* Header */}
-      {['Rango (s)', 'Algo. A', 'Algo. B', 'Total'].map((h, i) => (
+      {['Rango (s)', 'Algoritmo A', 'Algoritmo B', 'Total'].map((h, i) => (
         <text key={h} x={colX[i] + 80} y={50} fill="rgba(255,255,255,0.35)" fontSize="9" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.12em" textAnchor="middle">{h.toUpperCase()}</text>
       ))}
       <line x1={40} y1={58} x2={620} y2={58} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
@@ -507,8 +507,8 @@ const resolution = (
       <div className="pp-step-anim-rect" style={{ background: '#080c18', position: 'relative', overflow: 'hidden' }}>
         <p className="pp-step-category">Probabilidad · Consignas 1 y 2</p>
         <ProbBarViz items={[
-          { label: 'P1 — Algo. A, tiempo > 7 s', prob: 15 / 30, color: ACCENT_HEX, formula: '15 ÷ 30 = 0,5000' },
-          { label: 'P2 — Algo. A y tiempo < 5 s', prob: 2 / 60, color: '#A8FF3E', formula: '2 ÷ 60 = 0,0333' },
+          { label: 'P1 — Algoritmo A, tiempo > 7 s', prob: 15 / 30, color: ACCENT_HEX, formula: '15 ÷ 30 = 0,5000' },
+          { label: 'P2 — Algoritmo A y tiempo < 5 s', prob: 2 / 60, color: '#A8FF3E', formula: '2 ÷ 60 = 0,0333' },
         ]} />
       </div>
       <div className="pp-step-lower">

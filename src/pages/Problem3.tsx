@@ -146,27 +146,14 @@ function BoardViz() {
         x2={d2x2} y2={d2y2}
         stroke="#666" strokeWidth="1" />
 
-      {/* Legend */}
-      <g className="fsu-2">
-        {[
-          { color: ACCENT_HEX, label: 'Fila / Columna bloqueadas', y: 60 },
-          { color: '#666', label: 'Diagonales bloqueadas', y: 90 },
-        ].map(l => (
-          <g key={l.label}>
-            <line x1={462} y1={l.y} x2={490} y2={l.y} stroke={l.color} strokeWidth="2" />
-            <text x={498} y={l.y + 4} fill={l.color} fontSize="11" fontFamily="Inter,sans-serif">{l.label}</text>
-          </g>
-        ))}
-      </g>
-
       {/* Proposition labels */}
       <g className="fsu-3">
-        <text x={462} y={148} fill="rgba(255,255,255,0.28)" fontSize="8.5" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.14em">BLOQUEO FILA 3</text>
-        <text x={462} y={166} fill="#bbb" fontSize="10.5" fontFamily="'JetBrains Mono','Fira Code',monospace">R₃,₃→(¬R₃,₁∧…∧¬R₃,₈)</text>
-        <text x={462} y={208} fill="rgba(255,255,255,0.28)" fontSize="8.5" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.14em">BLOQUEO COLUMNA 3</text>
-        <text x={462} y={226} fill="#bbb" fontSize="10.5" fontFamily="'JetBrains Mono','Fira Code',monospace">R₃,₃→(¬R₁,₃∧…∧¬R₈,₃)</text>
-        <text x={462} y={268} fill="rgba(255,255,255,0.28)" fontSize="8.5" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.14em">BLOQUEO DIAGONALES</text>
-        <text x={462} y={286} fill="#bbb" fontSize="10.5" fontFamily="'JetBrains Mono','Fira Code',monospace">|i−k|=|j−l| → ¬(Rᵢ,ⱼ∧Rₖ,ₗ)</text>
+        <text x={462} y={75} fill="rgba(255,255,255,0.5)" fontSize="11" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.14em">BLOQUEO FILA 3</text>
+        <text x={462} y={105} fill="#eee" fontSize="18" fontFamily="'JetBrains Mono','Fira Code',monospace">R₃,₃→(¬R₃,₁∧…∧¬R₃,₈)</text>
+        <text x={462} y={165} fill="rgba(255,255,255,0.5)" fontSize="11" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.14em">BLOQUEO COLUMNA 3</text>
+        <text x={462} y={195} fill="#eee" fontSize="18" fontFamily="'JetBrains Mono','Fira Code',monospace">R₃,₃→(¬R₁,₃∧…∧¬R₈,₃)</text>
+        <text x={462} y={255} fill="rgba(255,255,255,0.5)" fontSize="11" fontFamily="Inter,sans-serif" fontWeight="800" letterSpacing="0.14em">BLOQUEO DIAGONALES</text>
+        <text x={462} y={285} fill="#eee" fontSize="18" fontFamily="'JetBrains Mono','Fira Code',monospace">|i−k|=|j−l| → ¬(Rᵢ,ⱼ∧Rₖ,ₗ)</text>
       </g>
 
       <text x={400} y={372} fill="#444" fontSize="10" textAnchor="middle" fontFamily="Inter,sans-serif" letterSpacing="0.08em">
