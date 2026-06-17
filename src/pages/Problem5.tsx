@@ -548,16 +548,16 @@ const theoryItems = [
 const approach = (
   <>
     <p>
-      Las transformaciones geométricas (traslación, rotación, escala) se modelan mediante{' '}
-      <strong>matrices en coordenadas homogéneas</strong>: extendemos los puntos con un componente
-      adicional '1' que permite representar todas las operaciones —incluyendo la traslación— como
-      multiplicaciones matriciales uniformes.
+      Para mover, rotar o cambiar el tamaño de objetos (transformaciones geométricas) usamos una técnica matemática llamada{' '}
+      <strong>coordenadas homogéneas</strong>. Básicamente, le agregamos un '1' al final de las coordenadas del punto. 
+      Esto nos permite usar el mismo tipo de operación matemática (multiplicación de matrices) para todos los movimientos, 
+      lo que facilita mucho los cálculos.
     </p>
     <p>
-      La estrategia consiste en aplicar cada transformación <strong>secuencialmente</strong>: el
-      resultado de cada paso se convierte en la entrada del siguiente. En 3D, el orden de las rotaciones
-      es fundamental, ya que la multiplicación matricial <strong>no es conmutativa</strong>:
-      aplicar Rz·Ry produce un resultado diferente a Ry·Rz.
+      La estrategia es aplicar los movimientos uno tras otro paso a paso: el resultado del primer movimiento es el 
+      punto de partida del siguiente. Un detalle muy importante en 3D es que <strong>el orden importa</strong>. 
+      Girar un objeto en un eje y luego en otro no es lo mismo que hacerlo al revés. En matemáticas, a esto se le llama{' '}
+      <strong>no conmutatividad</strong>.
     </p>
   </>
 )
