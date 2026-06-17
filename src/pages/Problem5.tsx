@@ -286,7 +286,7 @@ function VizD() {
       <g className="fsr-2">
         <text x={310} y={75} fill="#888" fontSize="9" fontWeight="700" letterSpacing="0.1em"
           fontFamily="Inter,sans-serif" textAnchor="middle">M₁ = Rz(180°)</text>
-        {[[-1,0,0,0],[0,-1,0,0],[0,0,1,0],[0,0,0,1]].map((row, r) =>
+        {[[-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]].map((row, r) =>
           row.map((v, c) => (
             <text key={`m1-${r}-${c}`} x={230 + c * 64} y={94 + r * 44}
               fill={v !== 0 && Math.abs(v) === 1 && (r === 0 || r === 1) ? ACCENT_HEX : '#666'}
@@ -349,7 +349,7 @@ function VizE() {
       <g className="fsr-1">
         <text x={175} y={64} fill="#888" fontSize="9" fontWeight="700" letterSpacing="0.1em"
           fontFamily="Inter,sans-serif" textAnchor="middle">M₂ = Ry(45°)</text>
-        {[['√2/2','0','√2/2','0'],['0','1','0','0'],['-√2/2','0','√2/2','0'],['0','0','0','1']].map((row, r) =>
+        {[['√2/2', '0', '√2/2', '0'], ['0', '1', '0', '0'], ['-√2/2', '0', '√2/2', '0'], ['0', '0', '0', '1']].map((row, r) =>
           row.map((v, c) => (
             <text key={`m2-${r}-${c}`} x={90 + c * 70} y={80 + r * 44}
               fill={v.includes('√') ? ACCENT_HEX : '#666'}
@@ -367,7 +367,7 @@ function VizE() {
       <g className="fsr-2">
         <text x={560} y={64} fill="#888" fontSize="9" fontWeight="700" letterSpacing="0.1em"
           fontFamily="Inter,sans-serif" textAnchor="middle">M₃ = Traslación</text>
-        {[['1','0','0','2'],['0','1','0','−1'],['0','0','1','3'],['0','0','0','1']].map((row, r) =>
+        {[['1', '0', '0', '2'], ['0', '1', '0', '−1'], ['0', '0', '1', '3'], ['0', '0', '0', '1']].map((row, r) =>
           row.map((v, c) => (
             <text key={`m3-${r}-${c}`} x={470 + c * 68} y={80 + r * 44}
               fill={c === 3 && r < 3 ? '#F5E642' : '#666'}
@@ -549,13 +549,13 @@ const approach = (
   <>
     <p>
       Para mover, rotar o cambiar el tamaño de objetos (transformaciones geométricas) usamos una técnica matemática llamada{' '}
-      <strong>coordenadas homogéneas</strong>. Básicamente, le agregamos un '1' al final de las coordenadas del punto. 
-      Esto nos permite usar el mismo tipo de operación matemática (multiplicación de matrices) para todos los movimientos, 
+      <strong>coordenadas homogéneas</strong>. Básicamente, para transformaciones 3D, le agregamos un '1' al final de las coordenadas del punto.
+      Esto nos permite usar el mismo tipo de operación matemática (multiplicación de matrices) para todos los movimientos,
       lo que facilita mucho los cálculos.
     </p>
     <p>
-      La estrategia es aplicar los movimientos uno tras otro paso a paso: el resultado del primer movimiento es el 
-      punto de partida del siguiente. Un detalle muy importante en 3D es que <strong>el orden importa</strong>. 
+      La estrategia es aplicar los movimientos uno tras otro paso a paso: el resultado del primer movimiento es el
+      punto de partida del siguiente. Un detalle muy importante en 3D es que <strong>el orden importa</strong>.
       Girar un objeto en un eje y luego en otro no es lo mismo que hacerlo al revés. En matemáticas, a esto se le llama{' '}
       <strong>no conmutatividad</strong>.
     </p>

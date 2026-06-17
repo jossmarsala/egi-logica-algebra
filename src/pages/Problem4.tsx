@@ -1,3 +1,4 @@
+import React from 'react'
 import ProblemPage from '../components/ProblemPage/ProblemPage'
 
 const ACCENT = 'var(--accent-yellow)'
@@ -158,24 +159,24 @@ function VizB() {
   // Right-side tree (x from 530 to 820)
   const R = 13  // node radius
   const tNodes = [
-    { id: 'r',   x: 672, y: 55,  label: '()',    hi: true  },
-    { id: 'a',   x: 590, y: 140, label: '(2)',   hi: false },
-    { id: 'b',   x: 755, y: 140, label: '(5)',   hi: false },
-    { id: 'c',   x: 548, y: 225, label: '(2,5)', hi: false },
-    { id: 'd',   x: 632, y: 225, label: '(2,7)', hi: false },
-    { id: 'e',   x: 716, y: 225, label: '(5,1)', hi: false },
-    { id: 'f',   x: 800, y: 225, label: '(5,3)', hi: false },
-    { id: 'g',   x: 548, y: 310, label: '…',     hi: false },
-    { id: 'h',   x: 632, y: 310, label: '…',     hi: false },
+    { id: 'r', x: 672, y: 55, label: '()', hi: true },
+    { id: 'a', x: 590, y: 140, label: '(2)', hi: false },
+    { id: 'b', x: 755, y: 140, label: '(5)', hi: false },
+    { id: 'c', x: 548, y: 225, label: '(2,5)', hi: false },
+    { id: 'd', x: 632, y: 225, label: '(2,7)', hi: false },
+    { id: 'e', x: 716, y: 225, label: '(5,1)', hi: false },
+    { id: 'f', x: 800, y: 225, label: '(5,3)', hi: false },
+    { id: 'g', x: 548, y: 310, label: '…', hi: false },
+    { id: 'h', x: 632, y: 310, label: '…', hi: false },
   ]
   const tEdges = [
-    ['r','a'], ['r','b'],
-    ['a','c'], ['a','d'],
-    ['b','e'], ['b','f'],
-    ['c','g'], ['d','h'],
+    ['r', 'a'], ['r', 'b'],
+    ['a', 'c'], ['a', 'd'],
+    ['b', 'e'], ['b', 'f'],
+    ['c', 'g'], ['d', 'h'],
   ]
-  const tPos: Record<string, {x:number;y:number}> = Object.fromEntries(
-    tNodes.map(n => [n.id, {x: n.x, y: n.y}])
+  const tPos: Record<string, { x: number; y: number }> = Object.fromEntries(
+    tNodes.map(n => [n.id, { x: n.x, y: n.y }])
   )
 
   return (
@@ -199,7 +200,7 @@ function VizB() {
             {Array.from({ length: COLS }, (_, row) =>
               Array.from({ length: COLS }, (_, col) => {
                 const hasQueen = queens[col] === row
-                const isNew    = hasQueen && col === queens.length - 1
+                const isNew = hasQueen && col === queens.length - 1
                 return (
                   <rect key={`${row}-${col}`}
                     x={ox + col * SZ} y={boardY + row * SZ}
@@ -277,90 +278,343 @@ function VizB() {
   )
 }
 
-// ─── Step C — DFS / Backtracking traversal ────────────────────────────────────
+// ─── Step C — DFS / Backtracking traversal (animated) ────────────────────────
+const DFS_KEYFRAMES = `
+  @keyframes fadeSlideUp    { from { opacity:0; transform:translateY(14px);  } to { opacity:1; transform:translateY(0);  } }
+  @keyframes drawLine       { from { stroke-dashoffset:1200; } to { stroke-dashoffset:0; } }
+  @keyframes popIn          { from { transform:scale(0.6); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+  @keyframes dfsNodeActive  {
+    0%   { r: 18; }
+    40%  { r: 23; }
+    70%  { r: 20; }
+    100% { r: 18; }
+  }
+  @keyframes dfsNodePulse   {
+    0%,100% { opacity: 1; }
+    50%     { opacity: 0.55; }
+  }
+  @keyframes dfsEdgeTravel  {
+    from { stroke-dashoffset: 200; opacity: 0.3; }
+    to   { stroke-dashoffset: 0;   opacity: 1;   }
+  }
+  @keyframes dfsDeadFlash   {
+    0%   { stroke: #ff4444; opacity:1; }
+    30%  { stroke: #ff8888; opacity:1; }
+    60%  { stroke: #ff4444; opacity:0.7; }
+    100% { stroke: #ff2222; opacity:1; }
+  }
+  @keyframes dfsBacktrack   {
+    0%   { stroke-dashoffset: 300; opacity: 0; }
+    20%  { opacity: 1; }
+    100% { stroke-dashoffset: 0;   opacity: 1; }
+  }
+  @keyframes dfsSolutionGlow {
+    0%,100% { filter: drop-shadow(0 0 4px #7dff9a88); }
+    50%     { filter: drop-shadow(0 0 14px #7dff9aee); }
+  }
+  @keyframes dfsLabelFade {
+    0%   { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes dfsArrowDash {
+    from { stroke-dashoffset: 120; }
+    to   { stroke-dashoffset: 0; }
+  }
+`
+
+// Each "step" in the DFS walkthrough:
+// visitedNodes: edges that are "traversed / grey"
+// activeNode: currently highlighted node id
+// activeEdge: edge index being traversed
+// deadNode: pruned node id
+// backtracking: show backtrack arrow
+// solution: show solution glow
+type DFSStep = {
+  visitedNodes: string[]
+  visitedEdges: number[]
+  activeNode: string | null
+  activeEdge: number | null
+  deadNode: string | null
+  backtracking: boolean
+  solution: boolean
+  label: string
+}
+
+const DFS_NODES = [
+  { id: 'r', x: 420, y: 45, label: '()' },
+  { id: 'n1', x: 185, y: 125, label: '(1)' },
+  { id: 'n3', x: 420, y: 125, label: '(3)' },
+  { id: 'n5', x: 570, y: 125, label: '(5)' },
+  { id: 'n13', x: 90, y: 215, label: '(1,3)' },
+  { id: 'n15', x: 235, y: 215, label: '(1,5)' },
+  { id: 'n135', x: 90, y: 305, label: '(1,3,5)' },
+  { id: 'n137', x: 240, y: 305, label: '(1,3,7)' },
+  { id: 'sol', x: 240, y: 390, label: 'k=8 ✓' },
+]
+
+const DFS_EDGES = [
+  { p: 'r', c: 'n1' }, // 0
+  { p: 'r', c: 'n3' }, // 1
+  { p: 'r', c: 'n5' }, // 2
+  { p: 'n1', c: 'n13' }, // 3
+  { p: 'n1', c: 'n15' }, // 4
+  { p: 'n13', c: 'n135' }, // 5
+  { p: 'n13', c: 'n137' }, // 6
+  { p: 'n137', c: 'sol' }, // 7
+]
+
+const DFS_STEPS: DFSStep[] = [
+  { visitedNodes: [], visitedEdges: [], activeNode: 'r', activeEdge: null, deadNode: null, backtracking: false, solution: false, label: 'Inicio · raíz ()' },
+  { visitedNodes: ['r'], visitedEdges: [], activeNode: 'n1', activeEdge: 0, deadNode: null, backtracking: false, solution: false, label: 'Descender → (1)' },
+  { visitedNodes: ['r', 'n1'], visitedEdges: [0], activeNode: 'n13', activeEdge: 3, deadNode: null, backtracking: false, solution: false, label: 'Descender → (1,3)' },
+  { visitedNodes: ['r', 'n1', 'n13'], visitedEdges: [0, 3], activeNode: 'n135', activeEdge: 5, deadNode: null, backtracking: false, solution: false, label: 'Descender → (1,3,5)' },
+  { visitedNodes: ['r', 'n1', 'n13'], visitedEdges: [0, 3, 5], activeNode: null, activeEdge: null, deadNode: 'n135', backtracking: false, solution: false, label: 'Sin extensiones · PODA' },
+  { visitedNodes: ['r', 'n1', 'n13'], visitedEdges: [0, 3, 5], activeNode: 'n13', activeEdge: null, deadNode: 'n135', backtracking: true, solution: false, label: 'Backtrack → (1,3)' },
+  { visitedNodes: ['r', 'n1', 'n13'], visitedEdges: [0, 3, 5], activeNode: 'n137', activeEdge: 6, deadNode: 'n135', backtracking: false, solution: false, label: 'Descender → (1,3,7)' },
+  { visitedNodes: ['r', 'n1', 'n13', 'n137'], visitedEdges: [0, 3, 5, 6], activeNode: 'sol', activeEdge: 7, deadNode: 'n135', backtracking: false, solution: false, label: 'Descender · k=8 alcanzado' },
+  { visitedNodes: ['r', 'n1', 'n13', 'n137', 'sol'], visitedEdges: [0, 3, 5, 6, 7], activeNode: null, activeEdge: null, deadNode: 'n135', backtracking: false, solution: true, label: '¡Solución encontrada! k=8 ✓' },
+]
+
 function VizC() {
-  // Show a partial DFS tree with backtrack arrow
-  const nodes = [
-    { id: 'r', x: 420, y: 42, label: '()', depth: 0, state: 'visited' },
-    { id: 'n1', x: 180, y: 120, label: '(1)', depth: 1, state: 'visited' },
-    { id: 'n3', x: 420, y: 120, label: '(3)', depth: 1, state: 'future' },
-    { id: 'n5', x: 550, y: 120, label: '(5)', depth: 1, state: 'future' },
-    { id: 'n13', x: 80, y: 210, label: '(1,3)', depth: 2, state: 'visited' },
-    { id: 'n15', x: 220, y: 210, label: '(1,5)', depth: 2, state: 'future' },
-    { id: 'n135', x: 80, y: 300, label: '(1,3,5)', depth: 3, state: 'dead' },
-    { id: 'n137', x: 220, y: 300, label: '(1,3,7)', depth: 3, state: 'current' },
-    { id: 'sol', x: 220, y: 380, label: 'k=8 ✓', depth: 4, state: 'solution' },
-  ]
-  const edges = [
-    { p: 'r', c: 'n1' }, { p: 'r', c: 'n3' }, { p: 'r', c: 'n5' },
-    { p: 'n1', c: 'n13' }, { p: 'n1', c: 'n15' },
-    { p: 'n13', c: 'n135' }, { p: 'n13', c: 'n137' },
-    { p: 'n137', c: 'sol' },
-  ]
-  const pos: Record<string, { x: number; y: number }> = Object.fromEntries(nodes.map(n => [n.id, { x: n.x, y: n.y }]))
-  const stateColor: Record<string, string> = {
-    visited: '#555',
-    future: '#2a2a2a',
-    dead: '#ff4444',
-    current: ACCENT_HEX,
-    solution: '#7dff9a',
+  const [step, setStep] = React.useState(0)
+  const [autoPlay, setAutoPlay] = React.useState(true)
+
+  React.useEffect(() => {
+    if (!autoPlay) return
+    const id = setTimeout(() => {
+      setStep(s => (s + 1) % DFS_STEPS.length)
+    }, step === DFS_STEPS.length - 1 ? 1800 : 900)
+    return () => clearTimeout(id)
+  }, [step, autoPlay])
+
+  const s = DFS_STEPS[step]
+  const pos: Record<string, { x: number; y: number }> = Object.fromEntries(DFS_NODES.map(n => [n.id, { x: n.x, y: n.y }]))
+
+  const nodeColor = (id: string) => {
+    if (s.activeNode === id) return ACCENT_HEX
+    if (id === 'sol' && s.solution) return '#7dff9a'
+    if (s.deadNode === id) return '#ff4444'
+    if (s.visitedNodes.includes(id)) return '#6699bb'
+    return '#2e2e2e'
+  }
+
+  const nodeStrokeW = (id: string) => {
+    if (s.activeNode === id) return '2.5'
+    if (id === 'sol' && s.solution) return '2.5'
+    if (s.deadNode === id) return '2'
+    return '1.2'
+  }
+
+  const edgeColor = (idx: number) => {
+    if (s.activeEdge === idx) return ACCENT_HEX
+    if (s.visitedEdges.includes(idx)) return '#5588aa'
+    return '#2a2a2a'
+  }
+
+  const edgeWidth = (idx: number) => {
+    if (s.activeEdge === idx) return '2.5'
+    if (s.visitedEdges.includes(idx)) return '1.5'
+    return '1'
   }
 
   return (
-    <svg viewBox="0 0 840 420" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} preserveAspectRatio="xMidYMid meet">
+    <svg
+      viewBox="0 0 840 430"
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+      preserveAspectRatio="xMidYMid meet"
+      onClick={() => { setAutoPlay(false); setStep(s2 => (s2 + 1) % DFS_STEPS.length) }}
+    >
       <defs>
-        <style>{KEYFRAMES}</style>
-        <marker id="arrC" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L0,6 L7,3 z" fill="#555" />
+        <style>{DFS_KEYFRAMES}</style>
+        <filter id="glowY" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <filter id="glowG" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="5" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <filter id="glowR" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <marker id="arrDFS" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#2a2a2a" />
         </marker>
-        <marker id="arrCbt" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+        <marker id="arrDFSact" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill={ACCENT_HEX} />
+        </marker>
+        <marker id="arrDFSvis" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#5588aa" />
+        </marker>
+        <marker id="arrBT" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
           <path d="M0,0 L0,6 L7,3 z" fill="#ff4444" />
         </marker>
       </defs>
 
-      {edges.map((e, i) => {
+      {/* ── All edges (base layer) ── */}
+      {DFS_EDGES.map((e, i) => {
         const p = pos[e.p], c = pos[e.c]
+        const isActive = s.activeEdge === i
+        const isVisited = s.visitedEdges.includes(i)
+        const col = edgeColor(i)
+        const markerId = isActive ? 'arrDFSact' : isVisited ? 'arrDFSvis' : 'arrDFS'
         return (
-          <line key={i} className="dl-1"
-            x1={p.x} y1={p.y + 18} x2={c.x} y2={c.y - 18}
-            stroke="#333" strokeWidth="1" markerEnd="url(#arrC)" />
+          <line key={i}
+            x1={p.x} y1={p.y + 19} x2={c.x} y2={c.y - 19}
+            stroke={col}
+            strokeWidth={edgeWidth(i)}
+            markerEnd={`url(#${markerId})`}
+            style={isActive ? {
+              filter: `drop-shadow(0 0 5px ${ACCENT_HEX}99)`,
+              strokeDasharray: 160,
+              strokeDashoffset: 0,
+              animation: 'dfsEdgeTravel 0.55s ease forwards',
+            } : {}}
+          />
         )
       })}
 
-      {/* Backtrack arrow from dead node */}
-      <path className="dl-2"
-        d="M80,282 Q20,260 80,210" fill="none"
-        stroke="#ff4444" strokeWidth="1.5" strokeDasharray="4 3"
-        markerEnd="url(#arrCbt)" />
-      <text x={22} y={250} fill="#ff4444" fontSize="8.5"
-        fontFamily="Inter,sans-serif" fontWeight="800">PODA</text>
+      {/* ── Backtrack arrow ── */}
+      {(s.backtracking || (s.deadNode && !s.activeNode && !s.solution)) && (
+        <path
+          d="M90,287 Q28,258 90,215"
+          fill="none"
+          stroke="#ff4444"
+          strokeWidth="2"
+          strokeDasharray="5 3"
+          markerEnd="url(#arrBT)"
+          style={{
+            strokeDasharray: 120,
+            animation: s.backtracking ? 'dfsArrowDash 0.6s ease forwards' : 'none',
+            opacity: s.backtracking ? 1 : 0.45,
+          }}
+        />
+      )}
 
-      {nodes.map((n, i) => (
-        <g key={n.id} className={`pop-${Math.min(4, i + 1)}`}>
-          <circle cx={n.x} cy={n.y} r={18}
-            fill="#0a0a0a" stroke={stateColor[n.state]}
-            strokeWidth={n.state === 'current' || n.state === 'solution' ? '2' : '1'} />
-          <text x={n.x} y={n.y + 4} fill={stateColor[n.state]} fontSize="8"
-            fontWeight="700" textAnchor="middle"
-            fontFamily="'JetBrains Mono','Fira Code',monospace">{n.label}</text>
-        </g>
-      ))}
+      {/* ── All nodes ── */}
+      {DFS_NODES.map(n => {
+        const isActive = s.activeNode === n.id
+        const isSolution = n.id === 'sol' && s.solution
+        const isDead = s.deadNode === n.id
+        const col = nodeColor(n.id)
+        return (
+          <g key={n.id}
+            style={{
+              filter: isActive
+                ? `drop-shadow(0 0 8px ${ACCENT_HEX}bb)`
+                : isSolution
+                  ? 'drop-shadow(0 0 10px #7dff9acc)'
+                  : isDead
+                    ? 'drop-shadow(0 0 6px #ff444488)'
+                    : 'none',
+            }}
+          >
+            {/* Glow ring for active */}
+            {isActive && (
+              <circle cx={n.x} cy={n.y} r={26}
+                fill="none"
+                stroke={ACCENT_HEX}
+                strokeWidth="1"
+                opacity="0.3"
+                style={{ animation: 'dfsNodePulse 1s ease-in-out infinite' }}
+              />
+            )}
+            <circle cx={n.x} cy={n.y} r={18}
+              fill={isActive ? '#141408' : isSolution ? '#071407' : isDead ? '#140a0a' : '#0a0a0a'}
+              stroke={col}
+              strokeWidth={nodeStrokeW(n.id)}
+              style={isActive ? { animation: 'dfsNodeActive 0.5s ease forwards' } : {}}
+            />
+            <text x={n.x} y={n.y + 4} fill={col} fontSize="7.5"
+              fontWeight="700" textAnchor="middle"
+              fontFamily="'JetBrains Mono','Fira Code',monospace">
+              {n.label}
+            </text>
+          </g>
+        )
+      })}
 
-      {/* DFS Legend */}
-      {[
-        { color: '#555', label: 'Nodo visitado (DFS)' },
-        { color: ACCENT_HEX, label: 'Nodo actual' },
-        { color: '#ff4444', label: 'Nodo sin extensiones (poda)' },
-        { color: '#7dff9a', label: 'Hoja solución k=8' },
-      ].map((l, i) => (
-        <g key={l.label} className="fsu-4">
-          <circle cx={660} cy={90 + i * 28} r={6} fill={l.color} />
-          <text x={672} y={94 + i * 28} fill={l.color} fontSize="9.5"
-            fontFamily="Inter,sans-serif">{l.label}</text>
-        </g>
-      ))}
+      {/* ── PODA label near dead node ── */}
+      {s.deadNode && (
+        <text
+          x={pos[s.deadNode].x - 32}
+          y={pos[s.deadNode].y - 22}
+          fill="#ff4444" fontSize="8" fontWeight="800"
+          fontFamily="Inter,sans-serif"
+          style={{ animation: 'dfsLabelFade 0.4s ease forwards', opacity: 1 }}
+        >
+          PODA
+        </text>
+      )}
 
-      <text x={420} y={410} fill="#444" fontSize="9.5" textAnchor="middle"
+      {/* ── Step label banner ── */}
+      <rect x={520} y={32} width={295} height={32} rx="6"
+        fill="rgba(0,0,0,0.55)" stroke={s.solution ? '#7dff9a44' : s.deadNode ? '#ff444433' : `${ACCENT_HEX}33`}
+        strokeWidth="1" />
+      <text x={667} y={52} fill={s.solution ? '#7dff9a' : s.deadNode && !s.activeNode ? '#ff8888' : ACCENT_HEX}
+        fontSize="10" fontWeight="700" textAnchor="middle"
+        fontFamily="Inter,sans-serif"
+        style={{ animation: 'dfsLabelFade 0.35s ease forwards' }}
+      >
+        {s.label}
+      </text>
+
+      {/* ── Legend (right panel) ── */}
+      <g style={{ animation: 'dfsLabelFade 0.6s ease forwards 0.5s', opacity: 0 }}>
+        {[
+          { color: '#6699bb', label: 'Visitado' },
+          { color: ACCENT_HEX, label: 'Activo (DFS)' },
+          { color: '#ff4444', label: 'Podado' },
+          { color: '#7dff9a', label: 'Solución k=8' },
+        ].map((l, i) => (
+          <g key={l.label}>
+            <circle cx={636} cy={112 + i * 26} r={5} fill={l.color} />
+            <text x={647} y={116 + i * 26} fill={l.color} fontSize="9"
+              fontFamily="Inter,sans-serif">{l.label}</text>
+          </g>
+        ))}
+      </g>
+
+      {/* ── Controls — bottom right ── */}
+      <g>
+        {/* Step counter */}
+        <text x={698} y={268} fill="#383838" fontSize="8.5" textAnchor="middle"
+          fontFamily="'JetBrains Mono','Fira Code',monospace" letterSpacing="0.05em">
+          {step + 1} / {DFS_STEPS.length}
+        </text>
+
+        {/* Play / Pause pill */}
+        <rect x={524} y={278} width={82} height={26} rx="13"
+          fill={autoPlay ? `${ACCENT_HEX}22` : ACCENT_HEX}
+          stroke={ACCENT_HEX} strokeWidth="1"
+          style={{ cursor: 'pointer' }}
+          onClick={(e) => { e.stopPropagation(); setAutoPlay(a => !a); }}
+        />
+
+        <text x={565} y={291} fill={autoPlay ? ACCENT_HEX : '#000'} fontSize="9" fontWeight="700"
+          textAnchor="middle" fontFamily="Inter,sans-serif" style={{ pointerEvents: 'none' }}
+          dominantBaseline="middle">
+          {autoPlay ? 'PAUSA' : 'PLAY'}
+        </text>
+
+        {/* Reiniciar pill */}
+        <rect x={618} y={278} width={92} height={26} rx="13"
+          fill="rgba(255,255,255,0.04)" stroke="#3a3a3a" strokeWidth="1"
+          style={{ cursor: 'pointer' }}
+          onClick={(e) => { e.stopPropagation(); setStep(0); setAutoPlay(true); }}
+        />
+
+        <text x={664} y={291} fill="#666" fontSize="9" fontWeight="600"
+          textAnchor="middle" fontFamily="Inter,sans-serif" style={{ pointerEvents: 'none' }}
+          dominantBaseline="middle">
+          REINICIAR
+        </text>
+      </g>
+
+      {/* ── Footer ── */}
+      <text x={420} y={422} fill="#333" fontSize="9" textAnchor="middle"
         fontFamily="Inter,sans-serif" letterSpacing="0.08em">
         RECORRIDO EN PROFUNDIDAD (DFS) · BACKTRACKING CON PODA
       </text>
@@ -541,99 +795,415 @@ function VizE() {
   )
 }
 
-// ─── Step F — Graph coloring model ────────────────────────────────────────────
-function VizF() {
-  // 8 column-vertices in a circle, colored by their assigned row
-  const cx = 420, cy = 185, r = 130
-  const rowColors = [
-    '#F5E642', '#69b6dd', '#e0a0ff', '#ff9f67',
-    '#7dff9a', '#ff6b6b', '#5ecfff', '#ffb347',
+// ─── Step F — Graph coloring model (animated backtracking) ────────────────────
+const GC_KEYFRAMES = `
+  @keyframes gcPopIn   { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
+  @keyframes gcPulse   { 0%,100%{opacity:0.35} 50%{opacity:1} }
+  @keyframes gcConflict {
+    0%   { stroke: #ff3333; stroke-width: 3; opacity: 1; }
+    25%  { stroke: #ff8888; stroke-width: 5; opacity: 1; }
+    50%  { stroke: #ff2222; stroke-width: 4; opacity: 0.8; }
+    75%  { stroke: #ff5555; stroke-width: 5; opacity: 1; }
+    100% { stroke: #ff3333; stroke-width: 3; opacity: 1; }
+  }
+  @keyframes gcEdgeGlow {
+    0%   { stroke-opacity:0.2; }
+    50%  { stroke-opacity:1; }
+    100% { stroke-opacity:0.6; }
+  }
+  @keyframes gcLock {
+    0%   { r:22; filter:drop-shadow(0 0 0px transparent); }
+    40%  { r:28; filter:drop-shadow(0 0 14px currentColor); }
+    70%  { r:24; }
+    100% { r:22; filter:drop-shadow(0 0 6px currentColor); }
+  }
+  @keyframes gcLabelPop {
+    0%   { opacity:0; transform:translateY(6px) scale(0.8); }
+    60%  { opacity:1; transform:translateY(-2px) scale(1.05); }
+    100% { opacity:1; transform:translateY(0) scale(1); }
+  }
+  @keyframes gcBacktrack {
+    0%   { opacity:1; transform:scale(1); }
+    30%  { opacity:0.6; transform:scale(0.85); }
+    60%  { opacity:0.2; transform:scale(0.6); }
+    100% { opacity:0; transform:scale(0.4); }
+  }
+  @keyframes gcTry {
+    0%   { opacity:0; transform:scale(0.6); }
+    60%  { opacity:0.8; transform:scale(1.1); }
+    100% { opacity:0.7; transform:scale(1); }
+  }
+  @keyframes gcShake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-5px); }
+    40%     { transform: translateX(5px); }
+    60%     { transform: translateX(-4px); }
+    80%     { transform: translateX(4px); }
+  }
+  @keyframes gcBannerFade {
+    from { opacity:0; } to { opacity:1; }
+  }
+  @keyframes gcRingPulse {
+    0%,100% { r:30; opacity:0.25; }
+    50%     { r:36; opacity:0.55; }
+  }
+`
+
+// Coloring backtracking steps: each step = { node, colorIdx (0-based), phase, conflictEdges[] }
+// phase: 'try' | 'conflict' | 'backtrack' | 'locked'
+// locked[]: node indices whose color is fixed
+// label: annotation text
+type GCPhase = 'try' | 'conflict' | 'backtrack' | 'locked' | 'done'
+type GCStep = {
+  phase: GCPhase
+  currentNode: number         // 0-based node being worked on
+  tryColor: number | null     // color index being tried (0-based)
+  locked: Record<number, number> // node→colorIdx fixed so far
+  conflictNodes: number[]      // nodes that conflict with current try
+  label: string
+}
+
+const ROW_COLORS_F = [
+  '#F5E642', '#69b6dd', '#e0a0ff', '#ff9f67',
+  '#7dff9a', '#ff6b6b', '#5ecfff', '#ffb347',
+]
+
+// Valid solution: col i gets row (1-based)
+const SOLUTION_F = [1, 5, 8, 6, 3, 7, 2, 4]
+
+// Build animation script:
+// For each node 0-7, try 1-2 wrong colors (conflict), then assign correct one (lock)
+function buildGCSteps(): GCStep[] {
+  const steps: GCStep[] = []
+  const locked: Record<number, number> = {}
+
+  // Wrong attempts per node (colorIdx 0-based, chosen to create plausible conflicts)
+  // We pick colors that would conflict with something already placed diagonally
+  const wrongAttempts: Array<Array<number>> = [
+    [],          // node 0: no conflict, first to place
+    [0],         // node 1: try color 0 (same as node 0 → same row)
+    [0, 3],      // node 2: two wrong tries
+    [1],         // node 3: one wrong try
+    [0],         // node 4
+    [2],         // node 5
+    [0, 4],      // node 6
+    [1],         // node 7
   ]
-  const solution = [1, 5, 8, 6, 3, 7, 2, 4] // row assigned (1-based) per column
+
+  for (let node = 0; node < 8; node++) {
+    const correctColor = SOLUTION_F[node] - 1 // 0-based
+
+    // Try wrong colors
+    for (const wrongColor of wrongAttempts[node]) {
+      // Find which previously-locked nodes conflict
+      const conflictNodes = Object.entries(locked)
+        .filter(([n, c]) => Number(c) === wrongColor || Math.abs(Number(n) - node) === Math.abs(Number(c) - wrongColor))
+        .map(([n]) => Number(n))
+        .slice(0, 2) // at most 2 conflict nodes shown
+
+      steps.push({
+        phase: 'try',
+        currentNode: node,
+        tryColor: wrongColor,
+        locked: { ...locked },
+        conflictNodes: [],
+        label: `Col ${node + 1}: intentando Fila ${wrongColor + 1}…`,
+      })
+      steps.push({
+        phase: 'conflict',
+        currentNode: node,
+        tryColor: wrongColor,
+        locked: { ...locked },
+        conflictNodes: conflictNodes.length ? conflictNodes : [Math.max(0, node - 1)],
+        label: `¡Conflicto! Fila ${wrongColor + 1} no es válida`,
+      })
+      steps.push({
+        phase: 'backtrack',
+        currentNode: node,
+        tryColor: null,
+        locked: { ...locked },
+        conflictNodes: [],
+        label: `Backtrack · descartando Fila ${wrongColor + 1}`,
+      })
+    }
+
+    // Now assign correct color
+    steps.push({
+      phase: 'try',
+      currentNode: node,
+      tryColor: correctColor,
+      locked: { ...locked },
+      conflictNodes: [],
+      label: `Col ${node + 1}: probando Fila ${correctColor + 1}…`,
+    })
+    locked[node] = correctColor
+    steps.push({
+      phase: 'locked',
+      currentNode: node,
+      tryColor: correctColor,
+      locked: { ...locked },
+      conflictNodes: [],
+      label: `✓ Col ${node + 1} → Fila ${correctColor + 1} (válido)`,
+    })
+  }
+
+  steps.push({
+    phase: 'done',
+    currentNode: -1,
+    tryColor: null,
+    locked: { ...locked },
+    conflictNodes: [],
+    label: '¡Coloreo completo! 8 reinas sin conflictos',
+  })
+
+  return steps
+}
+
+const GC_STEPS = buildGCSteps()
+
+function VizF() {
+  const CX = 420, CY = 185, R = 130
+  const [step, setStep] = React.useState(0)
+  const [autoPlay, setAutoPlay] = React.useState(true)
+
+  React.useEffect(() => {
+    if (!autoPlay) return
+    const delay =
+      GC_STEPS[step]?.phase === 'conflict' ? 900 :
+        GC_STEPS[step]?.phase === 'backtrack' ? 700 :
+          GC_STEPS[step]?.phase === 'locked' ? 1100 :
+            GC_STEPS[step]?.phase === 'done' ? 3200 : 750
+    const id = setTimeout(() => setStep(s => (s + 1) % GC_STEPS.length), delay)
+    return () => clearTimeout(id)
+  }, [step, autoPlay])
+
+  const s = GC_STEPS[step]
 
   const nodePos = Array.from({ length: 8 }, (_, i) => {
     const angle = (i / 8) * 2 * Math.PI - Math.PI / 2
-    return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) }
+    return { x: CX + R * Math.cos(angle), y: CY + R * Math.sin(angle) }
   })
 
-  // Attack edges (diagonal conflicts between some pairs)
-  const conflictPairs: [number, number][] = []
-  for (let i = 0; i < 8; i++) {
-    for (let j = i + 1; j < 8; j++) {
-      if (Math.abs(i - j) === Math.abs(solution[i] - solution[j])) {
-        // Diagonal conflict — but with valid solution these shouldn't exist
-        // For visualization, show a couple of "potential" conflict edges (dashed) between others
-      }
-      // Show all edges (incompatibilities in general model)
-      if (Math.abs(i - j) <= 2) conflictPairs.push([i, j])
-    }
+  // Edges: adjacent columns (|i-j|<=2) — same as original
+  const edgePairs: [number, number][] = []
+  for (let i = 0; i < 8; i++)
+    for (let j = i + 1; j < 8; j++)
+      if (j - i <= 2) edgePairs.push([i, j])
+
+  const isDone = s.phase === 'done'
+
+  // Node visual state
+  const getNodeFill = (i: number) => {
+    if (s.locked[i] !== undefined) return ROW_COLORS_F[s.locked[i]]
+    if (i === s.currentNode && s.tryColor !== null) return ROW_COLORS_F[s.tryColor]
+    return '#111'
+  }
+  const getNodeStroke = (i: number) => {
+    if (s.conflictNodes.includes(i)) return '#ff3333'
+    if (s.locked[i] !== undefined) return ROW_COLORS_F[s.locked[i]]
+    if (i === s.currentNode && s.tryColor !== null) return ROW_COLORS_F[s.tryColor]
+    return '#2a2a2a'
+  }
+  const getNodeStrokeW = (i: number) => {
+    if (s.conflictNodes.includes(i)) return '3'
+    if (i === s.currentNode) return '3'
+    if (s.locked[i] !== undefined) return '2'
+    return '1'
+  }
+  const getNodeOpacity = (i: number) => {
+    if (i > s.currentNode && s.locked[i] === undefined) return 0.32
+    return 1
+  }
+
+  // Edge highlight
+  const isConflictEdge = (a: number, b: number) => {
+    const n = s.currentNode
+    return s.phase === 'conflict' && (
+      (a === n && s.conflictNodes.includes(b)) ||
+      (b === n && s.conflictNodes.includes(a))
+    )
+  }
+  const isLockedEdge = (a: number, b: number) => {
+    return s.locked[a] !== undefined && s.locked[b] !== undefined
   }
 
   return (
-    <svg viewBox="0 0 840 380" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} preserveAspectRatio="xMidYMid meet">
-      <defs><style>{KEYFRAMES}</style></defs>
+    <svg
+      viewBox="0 0 840 380"
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+      preserveAspectRatio="xMidYMid meet"
+      onClick={() => { setAutoPlay(false); setStep(s2 => (s2 + 1) % GC_STEPS.length) }}
+    >
+      <defs>
+        <style>{GC_KEYFRAMES}</style>
+        <filter id="gcGlowY" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <filter id="gcGlowR" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="5" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+        <filter id="gcGlowG" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
 
-      {/* Incompatibility edges (dashed) */}
-      {conflictPairs.map(([a, b], i) => (
-        <line key={i}
-          x1={nodePos[a].x} y1={nodePos[a].y}
-          x2={nodePos[b].x} y2={nodePos[b].y}
-          stroke="rgba(255,255,255,0.28)" strokeWidth="1" strokeDasharray="3 3"
-        />
-      ))}
+      {/* ── Edges ── */}
+      {edgePairs.map(([a, b], idx) => {
+        const pa = nodePos[a], pb = nodePos[b]
+        const conflict = isConflictEdge(a, b)
+        if (!conflict) return null
+        return (
+          <line key={idx}
+            x1={pa.x} y1={pa.y} x2={pb.x} y2={pb.y}
+            stroke="#ff3333"
+            strokeWidth="2.5"
+            style={{
+              animation: 'gcConflict 0.5s ease-in-out 2',
+              filter: 'drop-shadow(0 0 6px #ff3333aa)',
+            }}
+          />
+        )
+      })}
 
-      {/* Nodes colored by row assignment */}
-      {nodePos.map((p, i) => (
-        <g key={i} className={`pop-${Math.min(4, Math.floor(i / 2) + 1)}`}>
-          <circle cx={p.x} cy={p.y} r={22}
-            fill="#0a0a0a" stroke={rowColors[solution[i] - 1]} strokeWidth="2.5" />
-          <text x={p.x} y={p.y - 4} fill={rowColors[solution[i] - 1]} fontSize="8"
-            fontWeight="800" textAnchor="middle" fontFamily="Inter,sans-serif">
-            Col {i + 1}
-          </text>
-          <text x={p.x} y={p.y + 10} fill={rowColors[solution[i] - 1]} fontSize="10"
-            fontWeight="700" textAnchor="middle"
-            fontFamily="'JetBrains Mono','Fira Code',monospace">
-            F{solution[i]}
-          </text>
-        </g>
-      ))}
+      {/* ── Nodes ── */}
+      {nodePos.map((p, i) => {
+        const isActive = i === s.currentNode
+        const isTrying = isActive && s.tryColor !== null
+        const isConflict = s.conflictNodes.includes(i) && s.phase === 'conflict'
+        const isLocked = s.locked[i] !== undefined
+        const isJustLocked = isActive && s.phase === 'locked'
+        const fill = getNodeFill(i)
+        const stroke = getNodeStroke(i)
+        const sw = getNodeStrokeW(i)
+        const op = getNodeOpacity(i)
 
-      {/* Color legend */}
-      <g className="fsu-3">
-        <rect x={28} y={30} width={155} height={230} rx="6"
-          fill="rgba(255,255,255,0.03)" stroke="#2a2a2a" strokeWidth="1" />
-        <text x={106} y={52} fill="#888" fontSize="8.5"
+        return (
+          <g key={i} style={{ opacity: op, transition: 'opacity 0.4s' }}>
+            {/* Pulse ring for active node */}
+            {isActive && !isDone && (
+              <circle cx={p.x} cy={p.y} r={30}
+                fill="none"
+                stroke={isTrying ? ROW_COLORS_F[s.tryColor!] : '#ffffff'}
+                strokeWidth="1"
+                style={{ animation: 'gcRingPulse 1s ease-in-out infinite', opacity: 0.35 }}
+              />
+            )}
+            {/* Done glow ring */}
+            {isDone && isLocked && (
+              <circle cx={p.x} cy={p.y} r={28}
+                fill="none"
+                stroke={ROW_COLORS_F[s.locked[i]]}
+                strokeWidth="1"
+                style={{ animation: 'gcPulse 2s ease-in-out infinite', opacity: 0.4 }}
+              />
+            )}
+            {/* Main circle */}
+            <circle cx={p.x} cy={p.y} r={22}
+              fill={fill}
+              fillOpacity={isTrying ? 0.18 : isLocked ? 0.22 : 0.05}
+              stroke={stroke}
+              strokeWidth={sw}
+              style={{
+                transition: 'stroke 0.3s, stroke-width 0.3s',
+                filter: isConflict
+                  ? 'drop-shadow(0 0 8px #ff333388)'
+                  : isJustLocked
+                    ? `drop-shadow(0 0 10px ${fill}cc)`
+                    : isDone && isLocked
+                      ? `drop-shadow(0 0 7px ${fill}88)`
+                      : 'none',
+                animation: isConflict
+                  ? 'gcShake 0.5s ease'
+                  : s.phase === 'backtrack' && isActive
+                    ? 'gcBacktrack 0.5s ease forwards'
+                    : isJustLocked
+                      ? 'gcLock 0.6s ease forwards'
+                      : isTrying && !isLocked
+                        ? 'gcTry 0.4s ease forwards'
+                        : 'none',
+              }}
+            />
+            {/* Col label */}
+            <text x={p.x} y={p.y - 5} fill={isLocked ? ROW_COLORS_F[s.locked[i]] : isTrying ? ROW_COLORS_F[s.tryColor!] : '#555'}
+              fontSize="7.5" fontWeight="800" textAnchor="middle"
+              fontFamily="Inter,sans-serif"
+              style={{ transition: 'fill 0.3s' }}>
+              Col {i + 1}
+            </text>
+            {/* Color label */}
+            {(isLocked || isTrying) && (
+              <text x={p.x} y={p.y + 9} fill={isLocked ? ROW_COLORS_F[s.locked[i]] : ROW_COLORS_F[s.tryColor!]}
+                fontSize="9.5" fontWeight="700" textAnchor="middle"
+                fontFamily="'JetBrains Mono','Fira Code',monospace"
+                style={{ animation: 'gcLabelPop 0.35s ease forwards' }}>
+                F{isLocked ? s.locked[i] + 1 : (s.tryColor ?? 0) + 1}
+              </text>
+            )}
+          </g>
+        )
+      })}
+
+      {/* ── Color legend (left panel) ── */}
+      <g>
+        <rect x={18} y={22} width={150} height={220} rx="6"
+          fill="rgba(255,255,255,0.02)" stroke="#252525" strokeWidth="1" />
+        <text x={93} y={42} fill="#555" fontSize="8"
           textAnchor="middle" fontFamily="Inter,sans-serif"
           fontWeight="800" letterSpacing="0.1em">8 COLORES = 8 FILAS</text>
-        {rowColors.map((col, i) => (
-          <g key={i}>
-            <rect x={44} y={64 + i * 22} width={10} height={10} rx="2" fill={col} />
-            <text x={60} y={73 + i * 22} fill={col} fontSize="9.5"
-              fontFamily="Inter,sans-serif">Fila {i + 1}</text>
-          </g>
-        ))}
+        {ROW_COLORS_F.map((col, i) => {
+          const isUsed = Object.values(s.locked).includes(i) || (s.tryColor === i && s.currentNode >= 0)
+          return (
+            <g key={i}>
+              <rect x={34} y={54 + i * 22} width={9} height={9} rx="2"
+                fill={col} opacity={isUsed ? 1 : 0.3}
+                style={{ transition: 'opacity 0.3s' }} />
+              <text x={49} y={63 + i * 22}
+                fill={isUsed ? col : '#333'} fontSize="9"
+                fontFamily="Inter,sans-serif"
+                style={{ transition: 'fill 0.3s' }}>
+                Fila {i + 1}
+              </text>
+            </g>
+          )
+        })}
       </g>
 
-      {/* Annotation */}
-      <g className="fsu-4">
-        <rect x={628} y={30} width={185} height={120} rx="6"
-          fill="rgba(245,230,66,0.04)" stroke="rgba(245,230,66,0.18)" strokeWidth="1" />
-        <text x={720} y={54} fill="#888" fontSize="8.5"
-          textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800">MODELO DE COLOREO</text>
-        <text x={720} y={78} fill="#aaa" fontSize="8.5"
-          textAnchor="middle" fontFamily="Inter,sans-serif">Vértices = 8 columnas</text>
-        <text x={720} y={96} fill="#aaa" fontSize="8.5"
-          textAnchor="middle" fontFamily="Inter,sans-serif">Colores = 8 filas</text>
-        <text x={720} y={114} fill="#aaa" fontSize="8.5"
-          textAnchor="middle" fontFamily="Inter,sans-serif">Aristas = ataques diagonales</text>
-        <text x={720} y={132} fill={ACCENT_HEX} fontSize="9"
-          textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="700">→ Coloreo propio válido</text>
-      </g>
 
-      <text x={420} y={372} fill="#444" fontSize="9.5" textAnchor="middle"
+
+      {/* ── Step label banner ── */}
+      <rect x={200} y={340} width={440} height={28} rx="6"
+        fill="rgba(0,0,0,0.6)"
+        stroke={
+          s.phase === 'conflict' ? '#ff333355' :
+            s.phase === 'locked' ? '#7dff9a33' :
+              s.phase === 'done' ? '#7dff9a55' :
+                s.phase === 'backtrack' ? '#ff888833' :
+                  `${ACCENT_HEX}22`
+        }
+        strokeWidth="1" />
+      <text x={420} y={359}
+        fill={
+          s.phase === 'conflict' ? '#ff6666' :
+            s.phase === 'locked' ? '#7dff9a' :
+              s.phase === 'done' ? '#7dff9a' :
+                s.phase === 'backtrack' ? '#ff9966' :
+                  ACCENT_HEX
+        }
+        fontSize="10" fontWeight="700" textAnchor="middle"
+        fontFamily="Inter,sans-serif"
+        style={{ animation: 'gcBannerFade 0.3s ease forwards' }}>
+        {s.label}
+      </text>
+
+
+
+      {/* ── Footer ── */}
+      <text x={420} y={390} fill="#333" fontSize="8.5" textAnchor="middle"
         fontFamily="Inter,sans-serif" letterSpacing="0.08em">
-        GRAFO DE INCOMPATIBILIDADES · COLOREO CON 8 COLORES (FILAS) · BACKTRACKING
+        COLOREO DE GRAFOS · BACKTRACKING · 8 COLUMNAS × 8 FILAS
       </text>
     </svg>
   )

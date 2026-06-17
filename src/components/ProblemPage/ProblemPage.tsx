@@ -113,18 +113,9 @@ export default function ProblemPage(props: ProblemPageProps) {
       }
     }
 
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (target.closest('button') || target.closest('a') || target.closest('input')) return
-      if (window.getSelection()?.toString().length) return
-      handleNext()
-    }
-
     window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('click', handleClick)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('click', handleClick)
     }
   }, [handleNext, handlePrev])
 
