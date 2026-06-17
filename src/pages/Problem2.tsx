@@ -659,8 +659,7 @@ const resolution = (
 
           {/* ══ PANEL A ══ */}
           <rect x={28} y={38} width={335} height={248} fill="url(#gradA)" rx={10} stroke={A_COLOR} strokeWidth="1" strokeOpacity="0.35" />
-          {/* top accent line */}
-          <rect x={28} y={38} width={335} height={4} fill={A_COLOR} rx={2} opacity={0.7} />
+
 
           {/* Algorithm A header */}
           <text x={196} y={72} fill={A_COLOR} fontSize="13" fontFamily="Inter,sans-serif" fontWeight="900" textAnchor="middle" letterSpacing="0.05em">ALGORITMO A</text>
@@ -688,7 +687,6 @@ const resolution = (
 
           {/* ══ PANEL B ══ */}
           <rect x={437} y={38} width={335} height={248} fill="url(#gradB)" rx={10} stroke={B_COLOR} strokeWidth="1" strokeOpacity="0.4" />
-          <rect x={437} y={38} width={335} height={4} fill={B_COLOR} rx={2} opacity={0.75} />
 
           <text x={605} y={72} fill={B_COLOR} fontSize="13" fontFamily="Inter,sans-serif" fontWeight="900" textAnchor="middle" letterSpacing="0.05em">ALGORITMO B</text>
           <text x={605} y={86} fill="rgba(255,255,255,0.3)" fontSize="8.5" fontFamily="Inter,sans-serif" textAnchor="middle" letterSpacing="0.1em">VELOZ · EFICIENTE</text>
@@ -715,8 +713,6 @@ const resolution = (
 
 
           {/* ══ VS divider ══ */}
-          <line x1={400} y1={48} x2={400} y2={282} stroke="rgba(255,255,255,0.07)" strokeWidth="1" strokeDasharray="4,4" />
-          <circle cx={400} cy={163} r={18} fill="#0a0f1c" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
           <text x={400} y={169} fill="rgba(255,255,255,0.3)" fontSize="11" fontFamily="Inter,sans-serif" fontWeight="900" textAnchor="middle">VS</text>
         </svg>
       </div>
